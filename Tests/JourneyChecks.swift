@@ -45,6 +45,13 @@ import Foundation
         check(live.point==a,"Unacknowledged progress does not mutate live cursor")
         live = proposed
         check(live.point != a,"Acknowledged progress can be committed")
+        check(BackgroundExecutionPolicy.mayTick(foreground:true,locationActive:false),"Foreground works without background authorization")
+        check(BackgroundExecutionPolicy.mayTick(foreground:false,locationActive:true),"Authorized active background session continues")
+        check(!BackgroundExecutionPolicy.mayTick(foreground:false,locationActive:false),"Background without active authorization stops")
+        check(!BackgroundExecutionPolicy.interrupted(elapsed:1.2),"Ordinary app-switch interval continues")
+        check(BackgroundExecutionPolicy.interrupted(elapsed:15),"Actual suspension pauses route")
+        check(BackgroundExecutionPolicy.interrupted(elapsed: -1),"Clock rollback does not reverse travel")
+        check(BackgroundExecutionPolicy.interrupted(elapsed: .nan),"Nonfinite elapsed time is rejected")
         print("Passed \(checks) journey checks")
     }
 }

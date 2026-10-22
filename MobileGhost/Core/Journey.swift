@@ -79,3 +79,13 @@ struct JourneyCursor {
         }
     }
 }
+
+/// Switching apps is not an interruption. A gap in actual execution is.
+enum BackgroundExecutionPolicy {
+    static func mayTick(foreground: Bool, locationActive: Bool) -> Bool {
+        foreground || locationActive
+    }
+    static func interrupted(elapsed: TimeInterval) -> Bool {
+        !elapsed.isFinite || elapsed < 0 || elapsed > 3
+    }
+}

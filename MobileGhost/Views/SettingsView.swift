@@ -1,11 +1,13 @@
 // Mobile Ghost additions, 2026-10-22. AGPL-3.0.
 import SwiftUI
+import UIKit
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage(UserDefaults.Keys.targetDeviceIP) private var targetIP = DeviceConnectionContext.defaultTargetIPAddress
     @ObservedObject private var tunnel = TunnelManager.shared
     @ObservedObject private var mounting = MountingProgress.shared
+    @ObservedObject private var background = BackgroundLocationManager.shared
     @State private var importing = false
     @State private var message: String?
     @State private var downloading = false
@@ -32,7 +34,11 @@ struct SettingsView: View {
                     if let message { Text(message).font(.caption) }
                 }
                 Section("During a journey") {
-                    Text("Keep Mobile Ghost visible and your phone awake. Leaving the app pauses movement and cancels pending departures. A simulated location may remain until you restore it.")
+                    LabeledContent("Location permission", value: background.permissionDescription)
+                    Button("Allow background location") { background.requestAlwaysPermission() }
+                    Button("Open iPhone Settings") { UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!) }
+                    Text("Active routes and fixed positions continue refreshing when you switch apps or lock the screen, while iOS permits background location execution. Allow location access and keep LocalDevVPN connected. A location indicator may appear and battery use increases.")
+                    Text("Force-quitting, iOS suspension, or losing the VPN can interrupt updates. After an execution gap, movement pauses instead of jumping ahead. A fixed position may persist or revert; verify it on your phone. Pending departures still require the app in the foreground.")
                     Text("A successful command is not proof of what another app displays. Check Maps after setting and restoring a location.")
                 }
                 Section("Privacy and credits") {

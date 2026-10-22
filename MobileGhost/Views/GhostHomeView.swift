@@ -134,7 +134,7 @@ struct GhostHomeView: View {
                 if let plan {
                     Section("Ready to travel") {
                         Text(String(format:"%.2f km · %@",plan.distance/1000,plan.mode))
-                        Text("Start moves the phone to the first stop. Keep Mobile Ghost visible; leaving the app pauses movement.").font(.caption)
+                        Text("Start moves the phone to the first stop. Allow background location to continue after switching apps.").font(.caption)
                         Button("Start route") { let snapshot = JourneyPlan(stops:stops,legs:plan.legs,mode:mode); session.applySpeed(speed); Task { await session.start(snapshot) }; showRoute = false }.disabled(session.busy || !timingsValid)
                         DatePicker("Departure",selection:$departure,in:Date()...Date().addingTimeInterval(30*86400))
                         Button("Schedule departure") { session.applySpeed(speed); session.schedule(JourneyPlan(stops:stops,legs:plan.legs,mode:mode),at:departure); showRoute = false }.disabled(session.busy || !timingsValid)
@@ -152,7 +152,7 @@ struct GhostHomeView: View {
             List {
                 Section("Saved places") { ForEach(saved) { place in Button(place.name) { select(place.point); query = place.name; showLibrary = false } }.onDelete { saved.remove(atOffsets:$0); persistPlaces() } }
                 Section("About") {
-                    Text("Mobile Ghost 0.1.0 · iPhone location simulation")
+                    Text("Mobile Ghost 0.1.1 · iPhone location simulation")
                     Text("Independent derivative of TLocation and StikDebug. © Stephen Bove and contributors. Modified October 22, 2026. AGPL-3.0; no warranty.").font(.caption)
                     Link("Source code and license",destination:URL(string:"https://github.com/rehanjafar/mobile-ghost")!)
                 }

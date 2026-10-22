@@ -31,11 +31,15 @@ extension GeoPoint {
     func setForeground(_ active: Bool) {
         foreground = active
         if !active {
-            running = false
             if scheduled != nil { cancelSchedule(); status = "Departure cancelled: app left foreground. Review and reschedule." }
-            else if needsRestore { status = "Movement paused. Last simulated location may remain." }
+            if needsRestore && !BackgroundLocationManager.shared.canContinueInBackground {
+                running = false
+                status = "Background location permission needed. Last simulated position may remain."
+            }
         }
-        lastTick = Date()
+        // Preserve the timestamp: returning after actual suspension must not hide
+        // a missed interval and silently resume movement.
+
     }
     private func command(_ point: GeoPoint?) async -> Int32 {
         let ip = DeviceConnectionContext.targetIPAddress
@@ -54,9 +58,11 @@ extension GeoPoint {
         UserDefaults.standard.set(true,forKey:"ghostNeedsRestore")
         UserDefaults.standard.set(try? JSONEncoder().encode(point),forKey:"ghostLastPoint")
         LocationSimulationSession.setMaintained(true)
+        if foreground { BackgroundLocationManager.shared.requestStart() }
     }
     private func failure(_ code: Int32) {
         running = false; refreshEnabled = false
+        BackgroundLocationManager.shared.requestStop()
         error = "Device operation failed (\(code)). Reconnect LocalDevVPN and retry. The last simulated location may remain."
         status = "Connection needs attention"
     }
@@ -64,6 +70,7 @@ extension GeoPoint {
         guard !busy, point.isValid else { return }
         cancelSchedule(); running = false; cursor = nil; busy = true
         defer { busy = false }
+        BackgroundLocationManager.shared.requestStart()
         let code = await command(point)
         if code == 0 { accepted(point); status = "Holding selected location — command accepted" } else { failure(code) }
     }
@@ -71,14 +78,16 @@ extension GeoPoint {
         guard !busy, plan.isValid else { return }
         cancelSchedule(); running = false; busy = true
         defer { busy = false }
+        BackgroundLocationManager.shared.requestStart()
         let next = JourneyCursor(plan:plan,speed:speed)
         let code = await command(next.point)
-        if code == 0 { cursor = next; speed = next.speed; accepted(next.point); running = foreground; lastTick = Date(); status = foreground ? "Following route" : "Paused — app is in background" }
+        if code == 0 { cursor = next; speed = next.speed; accepted(next.point); running = foreground || BackgroundLocationManager.shared.canContinueInBackground; lastTick = Date(); status = running ? "Following route" : "Paused — background location permission needed" }
         else { failure(code) }
     }
     func pause() { running = false; status = "Paused — holding last location" }
     func resume() {
         guard !busy, let cursor, !cursor.finished, foreground else { return }
+        BackgroundLocationManager.shared.requestStart()
         cancelSchedule(); refreshEnabled = true; running = true; lastTick = Date(); status = "Following route"
     }
     var canResume: Bool { cursor != nil && cursor?.finished == false && !running }
@@ -105,6 +114,7 @@ extension GeoPoint {
         if code == 0 {
             cursor = nil; current = nil; needsRestore = false; refreshEnabled = false
             LocationSimulationSession.setMaintained(false)
+            BackgroundLocationManager.shared.requestStop()
             UserDefaults.standard.removeObject(forKey:"ghostLastPoint")
             UserDefaults.standard.set(false,forKey:"ghostNeedsRestore")
             status = "Restore accepted. Check Maps for your real position."
@@ -112,8 +122,11 @@ extension GeoPoint {
     }
     private func tick() async {
         let now = Date(); let elapsed = now.timeIntervalSince(lastTick); lastTick = now
-        guard foreground else { return }
-        if let due = scheduled, now >= due {
+        guard BackgroundExecutionPolicy.mayTick(foreground: foreground, locationActive: BackgroundLocationManager.shared.canContinueInBackground) else {
+            if running { pause(); status = "Paused — background location permission needed" }
+            return
+        }
+        if foreground, let due = scheduled, now >= due {
             guard !busy, now.timeIntervalSince(due) <= 60, let plan = scheduledPlan,
                   TunnelManager.shared.isConnected, MountingProgress.shared.coolisMounted else {
                 cancelSchedule(); status = "Missed departure. Review connection and reschedule."; return
@@ -121,7 +134,7 @@ extension GeoPoint {
             speed = scheduledSpeed; await start(plan); return
         }
         guard !busy, refreshEnabled, needsRestore, let point = current else { return }
-        if running && elapsed > 3 { pause(); status = "Paused after a delayed update. Resume to continue."; return }
+        if running && BackgroundExecutionPolicy.interrupted(elapsed: elapsed) { pause(); status = "Paused after a delayed update. Resume to continue."; return }
         let wasRunning = running
         var next = cursor
         if running { next?.advance(seconds:min(2,elapsed)) }
