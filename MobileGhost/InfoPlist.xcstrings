@@ -1,0 +1,91 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "CFBundleDisplayName": {
+      "comment": "Bundle display name",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MobileGhost"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MobileGhost"
+          }
+        }
+      }
+    },
+    "CFBundleName": {
+      "comment": "Bundle name",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MobileGhost"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MobileGhost"
+          }
+        }
+      }
+    },
+    "NSLocalNetworkUsageDescription": {
+      "comment": "Privacy - Local Network Usage Description",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MobileGhost needs access to devices on your local network to connect to this device and simulate its location."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MobileGhost cần truy cập các thiết bị trong mạng nội bộ để kết nối tới thiết bị này và giả lập vị trí của nó."
+          }
+        }
+      }
+    },
+    "NSLocationAlwaysAndWhenInUseUsageDescription": {
+      "comment": "Privacy - Location Always and When In Use Usage Description",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MobileGhost uses your location to center the map on your position and to keep location simulation running in the background."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MobileGhost dùng vị trí của bạn để căn giữa bản đồ theo vị trí hiện tại và để duy trì việc giả lập vị trí khi chạy nền."
+          }
+        }
+      }
+    },
+    "NSLocationWhenInUseUsageDescription": {
+      "comment": "Privacy - Location When In Use Usage Description",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MobileGhost uses your location to center the map on your position and to keep location simulation running in the background."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MobileGhost dùng vị trí của bạn để căn giữa bản đồ theo vị trí hiện tại và để duy trì việc giả lập vị trí khi chạy nền."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
