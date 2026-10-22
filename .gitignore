@@ -1,0 +1,10 @@
+# Xcode build outputs and private device credentials
+.build/
+DerivedData/
+xcuserdata/
+*.ipa
+*.mobiledevicepairing
+*.mobiledevicepair
+pairingFile.plist
+*.mobileprovision
+MobileGhost/idevice/libidevice_ffi.a
